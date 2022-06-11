@@ -1,0 +1,240 @@
+import ipympl
+%matplotlib widget
+
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+
+
+"""
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Helvetica"]})
+# for Palatino and other serif fonts use:
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "font.serif": ["Palatino"],
+})
+"""
+
+import random
+
+class Bird:
+    def __init__(self,strat,survive=1,repro=0,place=0):
+        self.strategy=strat
+        self.surv=survive
+        self.repro=0
+        self.place=0
+
+    def cmpt(self,oppn):
+        if self.strategy==1 and oppn.strategy==1:
+            judge=random.random()
+            if judge>0.1:
+                self.surv=0
+            judge=random.random()
+            if judge>0.1:
+                oppn.surv=0
+        if self.strategy==0 and oppn.strategy==1:
+            judge=random.randint(1,2)
+            if judge==1:
+                self.surv=0
+            judge=random.randint(1,2)
+            if judge==1:
+                oppn.repro=1
+        if self.strategy==1 and oppn.strategy==0:
+            judge=random.randint(1,2)
+            if judge==1:
+                oppn.surv=0
+            judge=random.randint(1,2)
+            if judge==1:
+                self.repro=1
+
+def sperate():
+    #print("sperate")
+    global position
+    global place
+    global birds
+    global died
+    #print("birds len ",len(birds))
+    position=[[],[]]
+    place=np.zeros(51)
+    for i in range(len(birds)):
+        birds[i].place=0
+    for i in range(51):
+        position[0].append(0)
+        position[1].append(0)
+    for i in range(len(birds)):
+        bindex=[a for a in range(len(birds)) if birds[a].place==0]
+        pindex=[a for a in range(len(place)) if place[a]!=2]
+        if pindex==[]:
+            for i in range(len(birds)):
+                if birds[i].place==0:
+                    died[birds[i].strategy]=died[birds[i].strategy]+1
+            break
+        choob=random.choice(bindex)
+        choop=random.choice(pindex)
+        birds[choob].place=choop
+        place[choop]=place[choop]+1
+        if position[0][choop]==0:
+            position[0][choop]=birds[choob]
+        else:
+            position[1][choop]=birds[choob]
+        
+
+        
+
+def compare():
+    #print("compare")
+    global died
+    global reproduce
+    global position
+    global place
+    #print(place)
+    for i in range(len(place)):
+        if place[i]==1:
+                reproduce[position[0][i].strategy]=reproduce[position[0][i].strategy]+1
+        if place[i]==2:
+            position[0][i].cmpt(position[1][i])
+            reproduce[position[0][i].strategy]=reproduce[position[0][i].strategy]+position[0][i].repro
+            reproduce[position[1][i].strategy]=reproduce[position[1][i].strategy]+position[1][i].repro
+            died[position[0][i].strategy]=1-position[0][i].surv+died[position[0][i].strategy]
+            died[position[1][i].strategy]=1-position[1][i].surv+died[position[1][i].strategy]
+    for i in range(len(birds)):
+        birds[i].repro=0
+        birds[i].surv=1
+
+
+
+def nextGen():
+    #print("nextGen")
+    global birds
+    global died
+    global reproduce
+    global Num
+    #print(died)
+    #print(reproduce)
+    #print(Num)
+    for i in range(died[0]):
+        birds.pop(0)
+    for i in range(died[1]):
+        birds.pop(-1)
+    for i in range(reproduce[0]):
+        birds.insert(0,Bird(0))
+    for i in range(reproduce[1]):
+        birds.append(Bird(1))
+    died=[0,0]
+    reproduce=[0,0]
+
+def count():
+    #print("count")
+    global Num
+    global Popu
+    global birds
+
+    Num=[0,0]
+    for i in range(len(birds)):
+        Num[birds[i].strategy]=Num[birds[i].strategy]+1
+    Popu[0].append(Num[0])
+    Popu[1].append(Num[1])
+    
+    
+
+"""
+place=np.zeros(51)
+Num=[50,1]
+birds=[]
+reproduce=[0,0]
+died=[0,0]
+Popu=[[],[]]
+
+position=[[],[]]
+for i in range(51):
+    position[0].append(0)
+    position[1].append(0)
+
+for i in range(Num[0]):
+    birds.append(Bird(0))
+for i in range(Num[1]):
+    birds.append(Bird(1))
+            
+days=250
+t=[]
+diedout=[]
+
+for i in range(days):
+    count()
+    sperate()
+    compare()
+    nextGen()
+    t.append(i)
+
+
+"""
+diedout=[]
+for i in range(500):
+    place=np.zeros(51)
+    Num=[50,1]
+    birds=[]
+    reproduce=[0,0]
+    died=[0,0]
+    Popu=[[],[]]
+
+    position=[[],[]]
+    for i in range(51):
+        position[0].append(0)
+        position[1].append(0)
+
+    for i in range(Num[0]):
+        birds.append(Bird(0))
+    for i in range(Num[1]):
+        birds.append(Bird(1))
+    while(1):
+        i=i+1
+        count()
+        sperate()
+        compare()
+        nextGen()
+        #t.append(i)
+
+        if Num[0]==0:
+            diedout.append(i)
+            break
+"""
+
+
+
+
+X0=np.array(Popu[0])
+X1=np.array(Popu[1])
+t=np.array(t)
+
+"""
+
+print(diedout)
+
+"""
+import winsound
+
+duration = 3000 # 持续时间以毫秒为单位，这里是5秒
+freq = 440 # Hz
+winsound.Beep (freq, duration)
+"""
+
+"""
+fig,ax=plt.subplots(1)
+
+lin1,=ax.plot(t,X0)
+lin2,=ax.plot(t,X1)
+lin3,=ax.plot(t,X0+X1)
+
+ax.set_title("the living hawk and dove",fontsize=16)
+ax.set_xlabel("days",fontsize=14)
+ax.set_ylabel("number",fontsize=14)
+ax.tick_params(axis='x',labelsize=14)  # Set label locations.
+ax.tick_params(axis='y',labelsize=14)
+ax.legend([lin1,lin2,lin3],['Dove','Hawk','Total'],fontsize=14)
+ax.grid()
+plt.show()
+"""
