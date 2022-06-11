@@ -1,0 +1,233 @@
+import ipympl
+%matplotlib widget
+
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+
+
+"""
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Helvetica"]})
+# for Palatino and other serif fonts use:
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "font.serif": ["Palatino"],
+})
+"""
+
+import random
+
+
+class Bird:
+    def __init__(self,strat,survive=1,repro=0,place=0):
+        self.strategy=strat
+        self.surv=survive
+        self.repro=0
+        self.place=0
+
+    def cmpt(self,oppn):
+        if self.strategy==1 and oppn.strategy==1:           #(hawk hawk)
+            judge=random.random()
+            if judge>0:
+                self.surv=0
+            judge=random.random()
+            if judge>0:
+                oppn.surv=0
+        if self.strategy==1 and oppn.strategy==0:           #(hawk dove)
+            judge=random.randint(1,2)
+            if judge==1:
+                oppn.surv=0
+            judge=random.randint(1,2)
+            if judge==1:
+                self.repro=1
+        if self.strategy==0 and oppn.strategy==1:           #(dove hawk)
+            judge=random.randint(1,2)
+            if judge==1:
+                self.surv=0
+            judge=random.randint(1,2)
+            if judge==1:
+                oppn.repro=1
+        if self.strategy==2 and oppn.strategy==1:           #(human hawk)
+            judge=random.randint(1,2)
+            if judge==1:
+                self.surv=0
+            judge=random.randint(1,2)
+            if judge==1:
+                oppn.repro=1
+        if self.strategy==2 and oppn.strategy==0:           #(human dove)
+            judge=random.randint(1,2)
+            if judge==1:
+                oppn.surv=0
+            judge=random.randint(1,2)
+            if judge==1:
+                self.repro=1
+        if self.strategy==2 and oppn.strategy==2:           #(human huamn)
+            judge=random.random()
+            if judge>0:
+                self.surv=0
+            judge=random.random()
+            if judge>0:
+                oppn.surv=0
+
+            
+        
+
+
+
+def sperate():
+    #print("sperate")
+    global position #食物
+    global place  #搶食物的地方
+    global birds
+    global died
+    #print("birds len ",len(birds))
+    position=[[],[]]
+    place=np.zeros(51)
+    for i in range(len(birds)): 
+        birds[i].place=0   #未選擇
+    for i in range(51):
+        position[0].append(0)   
+        position[1].append(0)
+    for i in range(len(birds)):
+        bindex=[a for a in range(len(birds)) if birds[a].place==0]
+        pindex=[a for a in range(len(place)) if place[a]!=2] #place裡面的鳥不適2隻
+        if pindex==[]:
+            for i in range(len(birds)):    #??
+                if birds[i].place==0:
+                    died[birds[i].strategy]=died[birds[i].strategy]+1
+            break
+        choob=random.choice(bindex)
+        choop=random.choice(pindex)
+        birds[choob].place=1   #把選上的放進去?
+        place[choop]=place[choop]+1
+        if position[0][choop]==0:  #分類是不是dove
+            position[0][choop]=birds[choob]
+        else:
+            position[1][choop]=birds[choob]
+        
+       
+
+def compare():
+    #print("compare")
+    global died
+    global reproduce
+    global position
+    global place
+    #print(place)
+    for i in range(len(place)):
+        if place[i]==1:
+                reproduce[position[0][i].strategy]=reproduce[position[0][i].strategy]+1 #positon[0][i]是甚,第一個?
+        if place[i]==2:                                                                 #??
+            position[0][i].cmpt(position[1][i])
+            reproduce[position[0][i].strategy]=reproduce[position[0][i].strategy]+position[0][i].repro
+            reproduce[position[1][i].strategy]=reproduce[position[1][i].strategy]+position[1][i].repro
+            died[position[0][i].strategy]=1-position[0][i].surv+died[position[0][i].strategy]
+            died[position[1][i].strategy]=1-position[1][i].surv+died[position[1][i].strategy]
+    for i in range(len(birds)):
+        birds[i].repro=0
+        birds[i].surv=1
+
+
+
+def nextGen():
+    #print("nextGen")
+    global birds
+    global died
+    global reproduce
+    global Num
+    #print(died)
+    #print(reproduce)
+    #print(Num)
+    for k in range(dim):
+        for i in range(died[k]):
+            for bbd in range(len(birds)):
+                
+                if birds[bbd].strategy==k:
+                    #print(bbd,len(birds))
+                    birds.pop(bbd)
+                    break
+    #print("reproduce")
+    for k in range (dim):
+        for i in range(reproduce[k]):
+            birds.append(Bird(k))
+    
+    died=[0,0,0]          #[0,0]?
+    reproduce=[0,0,0]
+
+def count():
+    #print("count")
+    global Num
+    global Popu
+    global birds
+
+    
+    Num=[0,0,0]
+    for i in range(len(birds)): #為某要遞迴
+        #print(birds[i].strategy)
+        Num[birds[i].strategy]=Num[birds[i].strategy]+1
+
+    Popu[0].append(Num[0])
+    Popu[1].append(Num[1])
+    Popu[2].append(Num[2])
+
+
+
+place=np.zeros(51)
+Num=[50,1,10]
+birds=[]
+reproduce=[0,0,0]
+died=[0,0,0]
+Popu=[[],[],[]]
+dim=3
+
+position=[[],[]]
+for i in range(51):
+    position[0].append(0)
+    position[1].append(0)
+
+for i in range(Num[0]):
+    birds.append(Bird(0))
+for i in range(Num[1]):
+    birds.append(Bird(1))
+for i in range(Num[2]):
+    birds.append(Bird(2))
+
+            
+days=2000
+t=[]
+diedout=[]
+
+for i in range(days):
+    count()
+    sperate()
+    compare()
+    nextGen()
+    t.append(i)
+
+X0=np.array(Popu[0])
+X1=np.array(Popu[1])
+X2=np.array(Popu[2])
+t=np.array(t)
+
+
+fig,ax=plt.subplots(1)
+
+lin1,=ax.plot(t,X0)
+lin2,=ax.plot(t,X1)
+lin3,=ax.plot(t,X2)
+lin4,=ax.plot(t,X2+X1+X0)
+
+ax.set_title("the living hawk, dove and human",fontsize=16)
+ax.set_xlabel("days",fontsize=14)
+ax.set_ylabel("number",fontsize=14)
+ax.tick_params(axis='x',labelsize=14)  # Set label locations.
+ax.tick_params(axis='y',labelsize=14)
+ax.legend([lin1,lin2,lin3,lin4],['Dove','Hawk','human','Total'],fontsize=8)
+ax.grid()
+plt.show()
+
+#fig.savefig('1.jpg')
